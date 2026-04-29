@@ -59,3 +59,14 @@ def verify(data: dict):
 @router.post("/verify")
 def verify(data: dict):
     return smart_verify(data["iso"], data["device"])
+
+@router.get("/health")
+def health():
+    return {"status": "ok"}
+
+# 🔥 VERIFY API
+from engine.verify_flash import smart_verify
+
+@router.post("/verify")
+def verify(data: dict):
+    return smart_verify(data["iso"], data["device"])
