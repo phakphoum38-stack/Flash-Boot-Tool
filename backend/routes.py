@@ -1,10 +1,14 @@
-from engine.qemu_boot_emulator import emulate_boot
+from fastapi import APIRouter
+from engine.boot_simulator import simulate_boot
+from engine.simulation_report import format_report
 
-@router.post("/emulate")
-def emulate(data: dict):
-    result = emulate_boot(data["iso"])
+router = APIRouter()
+
+@router.post("/simulate")
+def simulate(data: dict):
+    sim = simulate_boot(data["iso"])
 
     return {
-        "result": result,
-        "status": "simulation complete"
+        "raw": sim,
+        "report": format_report(sim)
     }
