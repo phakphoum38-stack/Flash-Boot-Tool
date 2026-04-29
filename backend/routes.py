@@ -14,6 +14,7 @@ from engine.safety import (
 from engine.qemu_runner import run_qemu_boot
 from engine.boot_analyzer import analyze_boot
 from engine.auto_fix_engine import suggest_fix, apply_fix
+import traceback
 
 router = APIRouter()
 
@@ -96,3 +97,9 @@ def apply_fix_api(data: dict):
 @router.post("/flash")
 def flash(data: dict):
     print("DATA:", data)
+
+try:
+    ...
+except Exception as e:
+    traceback.print_exc()
+    return {"error": str(e)}
