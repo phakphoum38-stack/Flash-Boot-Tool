@@ -13,7 +13,7 @@ from engine.safety import (
 )
 from engine.qemu_runner import run_qemu_boot
 from engine.boot_analyzer import analyze_boot
-
+from engine.auto_fix_engine import suggest_fix, apply_fix
 
 router = APIRouter()
 
@@ -73,3 +73,22 @@ def boot_test(data: dict):
         "result": result,
         "log": log[:1000]  # ตัด log ไม่ให้ยาวเกิน
     }
+
+@router.post("/auto-fix")
+def auto_fix(data: dict):
+    log = data.get("log")
+    device = data.get("device")
+
+    suggestion = suggest_fix(log)
+
+    return {"suggestion": suggestion}
+
+
+@router.post("/apply-fix")
+def apply_fix_api(data: dict):
+    log = data.get("log")
+    device = data.get("device")
+
+    result = apply_fix(log, device)
+
+    return {"result": result}
