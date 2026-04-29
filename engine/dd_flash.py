@@ -4,6 +4,8 @@ import subprocess
 import re
 import time
 from engine.safety import register_process
+from engine.verify_flash import verify_flash
+
 
 def flash_dd_with_progress(iso, device):
 
@@ -45,3 +47,14 @@ def flash_dd_with_progress(iso, device):
     proc.wait()
 
     yield {"status": "done"}
+
+def flash_dd_with_verify(iso, device):
+
+    flash_dd(iso, device)
+
+    result = verify_flash(iso, device)
+
+    return {
+        "flash": "done",
+        "verify": result
+    }
