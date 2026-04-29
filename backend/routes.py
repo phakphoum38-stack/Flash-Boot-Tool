@@ -2,6 +2,7 @@ from fastapi import APIRouter
 from engine.boot_simulator import simulate_boot
 from engine.simulation_report import format_report
 from engine.auto_fix_engine import auto_fix
+from engine.ai_engine import smart_auto_fix
 
 router = APIRouter()
 
@@ -23,3 +24,10 @@ def auto_fix_api(data: dict):
     )
 
     return result
+
+@router.post("/ai-auto-fix")
+def ai_fix(data: dict):
+    return smart_auto_fix(
+        data["iso"],
+        data["usb"]
+    )
