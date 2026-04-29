@@ -46,3 +46,35 @@ def fast_verify(iso, device):
         "match_ratio": match_ratio,
         "match": match_ratio > 0.95
     }
+
+def full_verify(iso, device, block_size=1024*1024):
+    import hashlib
+
+    def sha(path):
+        h = hashlib.sha256()
+        with open(path, "rb") as f:
+            while True:
+                data = f.read(block_size)
+                if not data:
+                    break
+                h.update(data)
+        return h.hexdigest()
+
+    return {
+        "method": "full_verify",
+        "match": sha(iso) == sha(device)
+    }
+
+def smart_verify(iso, device):
+
+    fast = fast_verify(iso, device)
+
+    # ถ้าไม่มั่นใจ → ใช้ full
+    if fast["match_ratio"] < 0.98:
+        full = full_verify(iso, device)
+        return {
+            "fast": fast,
+            "full": full
+        }
+
+    return {"fast": fast}
