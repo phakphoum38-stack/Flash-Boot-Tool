@@ -1,4 +1,5 @@
 import DropZone from "./components/DropZone";
+import Verify from "./components/Verify";
 
 export default function App() {
   const handleDropISO = async (isos) => {
@@ -24,3 +25,21 @@ export default function App() {
     </div>
   );
 }
+
+function App() {
+
+  const iso = "/path/to/windows.iso";
+  const device = "/dev/sdb";
+
+  return (
+    <div>
+      <h1>Flash Tool</h1>
+
+      {/* ปุ่ม verify */}
+      <Verify iso={iso} device={device} />
+
+    </div>
+  );
+}
+
+export default App;
