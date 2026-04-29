@@ -6,10 +6,12 @@ from engine.fix_executor import (
     split_wim,
     full_reset
 )
+from engine.security_policy import filter_strategies
 
 def auto_fix(qemu_result, iso_path, usb):
 
     strategies = map_fix_strategy(qemu_result)
+    strategies = filter_strategies(strategies)
 
     applied = []
 
