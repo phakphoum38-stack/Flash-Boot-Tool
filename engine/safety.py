@@ -1,3 +1,5 @@
+import signal
+
 DANGEROUS_DISKS = ["/dev/sda", "/dev/nvme0n1"]
 
 def validate_device(device):
@@ -12,3 +14,6 @@ def dry_run(action, *args):
     
     if DRY_MODE:
         return dry_run("flash_dd", iso, device)
+
+def kill_switch():
+    raise Exception("🚨 Operation aborted")
