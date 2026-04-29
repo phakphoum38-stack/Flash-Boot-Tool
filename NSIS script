@@ -1,0 +1,8 @@
+Name "FlashForge"
+OutFile "FlashForgeInstaller.exe"
+
+Section
+  SetOutPath "$INSTDIR"
+  File "FlashForge.exe"
+  CreateShortcut "$DESKTOP\FlashForge.lnk" "$INSTDIR\FlashForge.exe"
+SectionEnd
