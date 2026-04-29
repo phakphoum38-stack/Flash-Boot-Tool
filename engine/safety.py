@@ -9,5 +9,6 @@ def validate_device(device):
 def dry_run(action, *args):
     print(f"[DRY-RUN] {action} {args}")
     return {"status": "simulated"}
+    
     if DRY_MODE:
-    return dry_run("flash_dd", iso, device)
+        return dry_run("flash_dd", iso, device)
