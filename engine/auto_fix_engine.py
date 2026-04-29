@@ -7,6 +7,9 @@ from engine.fix_executor import (
     full_reset
 )
 from engine.security_policy import filter_strategies
+from engine.fix_strategies import FIX_DB
+from engine.fix_executor import FIX_MAP
+
 
 def auto_fix(qemu_result, iso_path, usb):
 
@@ -43,3 +46,47 @@ def auto_fix(qemu_result, iso_path, usb):
         "strategies": strategies,
         "actions": applied
     }
+
+def detect_issue(log):
+    log = log.lower()
+
+    for key in FIX_DB:
+        if key in log:
+            return key
+
+    return None
+
+
+def suggest_fix(log):
+    issue = detect_issue(log)
+
+    if not issue:
+        return {"status": "unknown", "message": "No known issue"}
+
+    data = FIX_DB[issue]
+
+    return {
+        "status": "detected",
+        "issue": issue,
+        "fix": data["fix"],
+        "description": data["desc"]
+    }
+
+
+def apply_fix(log, device):
+    issue = detect_issue(log)
+
+    if not issue:
+        return {"status": "no_fix"}
+
+    fix_name = FIX_DB[issue]["fix"]
+    func = FIX_MAP.get(fix_name)
+
+    if func:
+        try:
+            result = func(device)
+            return {"status": "applied", "fix": fix_name, "result": str(result)}
+        except Exception as e:
+            return {"status": "error", "error": str(e)}
+
+    return {"status": "not_found"}
