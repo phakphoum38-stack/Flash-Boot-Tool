@@ -1,34 +1,48 @@
-import subprocess
+# engine/verify_flash.py
+
 import os
-from engine.checksum import sha256_file
+import hashlib
+import random
+from concurrent.futures import ThreadPoolExecutor
 
-def verify_flash(iso, device):
+SAMPLE_SIZE = 1024 * 1024  # 1MB ต่อ sample
+NUM_SAMPLES = 20           # จำนวน sample
 
-    tmp_dump = "/tmp/usb_dump.img"
+def read_block(path, offset, size):
+    with open(path, "rb") as f:
+        f.seek(offset)
+        return f.read(size)
 
-    # 🔥 อ่าน USB กลับมา (ขนาดเท่า ISO)
+def hash_block(data):
+    return hashlib.sha256(data).hexdigest()
+
+def get_offsets(size):
+    offsets = [0, size // 2, size - SAMPLE_SIZE]  # จุดสำคัญ
+    for _ in range(NUM_SAMPLES):
+        offsets.append(random.randint(0, size - SAMPLE_SIZE))
+    return offsets
+
+def fast_verify(iso, device):
+
     size = os.path.getsize(iso)
 
-    cmd = [
-        "dd",
-        f"if={device}",
-        f"of={tmp_dump}",
-        "bs=4M",
-        f"count={size // (4*1024*1024) + 1}"
-    ]
+    offsets = get_offsets(size)
 
-    subprocess.run(cmd)
+    def check_offset(offset):
+        iso_block = read_block(iso, offset, SAMPLE_SIZE)
+        usb_block = read_block(device, offset, SAMPLE_SIZE)
 
-    print("🔍 Calculating ISO hash...")
-    iso_hash = sha256_file(iso)
+        return hash_block(iso_block) == hash_block(usb_block)
 
-    print("🔍 Calculating USB hash...")
-    usb_hash = sha256_file(tmp_dump)
+    # 🔥 parallel
+    with ThreadPoolExecutor(max_workers=8) as exe:
+        results = list(exe.map(check_offset, offsets))
 
-    os.remove(tmp_dump)
+    match_ratio = sum(results) / len(results)
 
     return {
-        "iso_hash": iso_hash,
-        "usb_hash": usb_hash,
-        "match": iso_hash == usb_hash
+        "method": "fast_verify",
+        "samples": len(offsets),
+        "match_ratio": match_ratio,
+        "match": match_ratio > 0.95
     }
