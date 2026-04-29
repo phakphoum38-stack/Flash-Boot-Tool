@@ -11,6 +11,9 @@ from engine.safety import (
     request_abort,
     reset_abort
 )
+from engine.qemu_runner import run_qemu_boot
+from engine.boot_analyzer import analyze_boot
+
 
 router = APIRouter()
 
@@ -57,3 +60,16 @@ def abort():
 def iso_size(path: str):
     import os
     return {"size": os.path.getsize(path)}
+
+@router.post("/boot-test")
+def boot_test(data: dict):
+
+    iso = data.get("iso")
+
+    log = run_qemu_boot(iso)
+    result = analyze_boot(log)
+
+    return {
+        "result": result,
+        "log": log[:1000]  # ตัด log ไม่ให้ยาวเกิน
+    }
