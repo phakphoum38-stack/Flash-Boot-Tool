@@ -59,4 +59,13 @@ pub fn auto_fix(iso: String, usb: String, qemu_result: String) -> String {
         Ok(o) => String::from_utf8_lossy(&o.stdout).to_string(),
         Err(e) => e.to_string()
     }
+
+    #[tauri::command]
+pub fn safe_flash(device: String, iso: String) -> String {
+    if !crate::usb_guard::is_safe_device(&device) {
+        return "🚫 BLOCKED: system disk".into();
+    }
+    // continue...
+    "OK".into()
+}
 }
