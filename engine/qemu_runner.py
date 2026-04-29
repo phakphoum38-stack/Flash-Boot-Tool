@@ -1,20 +1,41 @@
 import subprocess
+import time
 
-def run_qemu(iso, mode="uefi"):
+def run_qemu_boot(iso):
 
     cmd = [
         "qemu-system-x86_64",
-        "-m", "2048",
+        "-m", "1024",
         "-cdrom", iso,
-        "-boot", "d"
+        "-boot", "d",
+        "-nographic",
+        "-serial", "stdio",
     ]
 
-    # UEFI support
-    if mode == "uefi":
-        cmd += [
-            "-bios", "/usr/share/OVMF/OVMF_CODE.fd"
-        ]
+    process = subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True
+    )
 
+    start = time.time()
+    output = []
+
+    # อ่าน log 10 วินาที
+    while True:
+        line = process.stdout.readline()
+        if not line:
+            break
+
+        output.append(line.strip())
+
+        # timeout
+        if time.time() - start > 10:
+            process.kill()
+            break
+
+    return "\n".join(output)
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     stdout, stderr = process.communicate(timeout=20)
