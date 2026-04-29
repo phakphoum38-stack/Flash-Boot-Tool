@@ -92,3 +92,7 @@ def apply_fix_api(data: dict):
     result = apply_fix(log, device)
 
     return {"result": result}
+
+@router.post("/flash")
+def flash(data: dict):
+    print("DATA:", data)
