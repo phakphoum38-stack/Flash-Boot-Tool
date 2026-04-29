@@ -42,3 +42,21 @@ pub fn ventoy_add_iso(device: String, isos: Vec<String>) -> String {
 
     "ISOs added to Ventoy USB".to_string()
 }
+
+#[tauri::command]
+pub fn auto_fix(iso: String, usb: String, qemu_result: String) -> String {
+
+    let output = std::process::Command::new("python3")
+        .args([
+            "engine/auto_fix_engine.py",
+            &iso,
+            &usb,
+            &qemu_result
+        ])
+        .output();
+
+    match output {
+        Ok(o) => String::from_utf8_lossy(&o.stdout).to_string(),
+        Err(e) => e.to_string()
+    }
+}
