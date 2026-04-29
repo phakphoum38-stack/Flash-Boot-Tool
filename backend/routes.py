@@ -3,6 +3,7 @@ from engine.boot_simulator import simulate_boot
 from engine.simulation_report import format_report
 from engine.auto_fix_engine import auto_fix
 from engine.ai_engine import smart_auto_fix
+from engine.safety import kill_switch
 
 router = APIRouter()
 
@@ -31,3 +32,7 @@ def ai_fix(data: dict):
         data["iso"],
         data["usb"]
     )
+
+@router.post("/abort")
+def abort():
+    return kill_switch()
