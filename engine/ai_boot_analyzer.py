@@ -35,3 +35,18 @@ def analyze_iso(path):
         })
 
     return result
+
+def analyze_boot(log):
+
+    log = log.lower()
+
+    if "no bootable device" in log:
+        return {"status": "fail", "reason": "No bootable device"}
+
+    if "booting from cd" in log or "isolinux" in log:
+        return {"status": "ok", "reason": "Boot loader detected"}
+
+    if "error" in log:
+        return {"status": "fail", "reason": "Generic boot error"}
+
+    return {"status": "unknown", "reason": "Unclear"}
