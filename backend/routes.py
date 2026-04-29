@@ -3,6 +3,7 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 import json
 import traceback
+import os
 
 from engine.flash_engine import flash_with_progress
 from engine.verify_flash import smart_verify
@@ -33,7 +34,7 @@ def health():
 
 
 # =========================
-# 🔥 FLASH STREAM (FIXED)
+# 🔥 FLASH STREAM (FIXED + SAFE)
 # =========================
 @router.post("/flash")
 def flash(data: FlashRequest):
@@ -45,8 +46,13 @@ def flash(data: FlashRequest):
 
         def gen():
             try:
-                # 🚀 stream flash progress
+                # 🚀 flash progress stream
                 for update in flash_with_progress(data.iso, data.device):
+
+                    # กัน crash ถ้า engine ส่งไม่ใช่ dict
+                    if not isinstance(update, dict):
+                        update = {"raw": str(update)}
+
                     yield json.dumps({
                         "type": "progress",
                         "data": update
@@ -91,9 +97,12 @@ def abort():
 
 
 # =========================
-# 💾 ISO SIZE
+# 💾 ISO SIZE (FIXED SAFE)
 # =========================
 @router.get("/iso-size")
 def iso_size(path: str):
-    import os
-    return {"size": os.path.getsize(path)}
+
+    try:
+        return {"size": os.path.getsize(path)}
+    except Exception as e:
+        return {"error": str(e)}
