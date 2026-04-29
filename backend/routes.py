@@ -1,19 +1,59 @@
 from fastapi import APIRouter
+from fastapi.responses import StreamingResponse
+from pydantic import BaseModel
+import json
+
+from engine.flash_engine import flash_with_progress
 from engine.verify_flash import smart_verify
+from engine.safety import (
+    verify_device_safe,
+    verify_iso_safe,
+    request_abort,
+    reset_abort
+)
 
 router = APIRouter()
 
-@router.get("/health")
+class FlashRequest(BaseModel):
+    iso: str
+    device: str
+
+@router.get("/")
 def health():
     return {"status": "ok"}
 
 
-@router.post("/verify")
-def verify(data: dict):
-    iso = data.get("iso")
-    device = data.get("device")
+# 🔥 FLASH + PROGRESS + VERIFY
+@router.post("/flash")
+def flash(data: FlashRequest):
 
-    if not iso or not device:
-        return {"error": "iso/device required"}
+    verify_device_safe(data.device)
+    verify_iso_safe(data.iso)
+    reset_abort()
 
-    return smart_verify(iso, device)
+    def gen():
+        for update in flash_with_progress(data.iso, data.device):
+            yield json.dumps(update) + "\n"
+
+            if update.get("status") == "aborted":
+                return
+
+        # auto verify
+        result = smart_verify(data.iso, data.device)
+        yield json.dumps({"verify": result}) + "\n"
+
+    return StreamingResponse(gen(), media_type="application/json")
+
+
+# 🔴 KILL SWITCH
+@router.post("/abort")
+def abort():
+    request_abort()
+    return {"status": "aborting"}
+
+
+# 📦 ISO SIZE
+@router.get("/iso-size")
+def iso_size(path: str):
+    import os
+    return {"size": os.path.getsize(path)}
