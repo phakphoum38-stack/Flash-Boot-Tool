@@ -22,3 +22,26 @@ def map_fix_strategy(qemu_result):
         strategies.append("full_reset")
 
     return strategies
+
+FIX_DB = {
+    "no bootable device": {
+        "fix": "rebuild_partition_table",
+        "desc": "สร้าง partition ใหม่ + set boot flag"
+    },
+    "grub rescue": {
+        "fix": "repair_grub",
+        "desc": "ติดตั้ง GRUB ใหม่"
+    },
+    "missing operating system": {
+        "fix": "rewrite_mbr",
+        "desc": "เขียน MBR ใหม่"
+    },
+    "bootmgr is missing": {
+        "fix": "windows_boot_fix",
+        "desc": "ซ่อม Windows Bootloader"
+    },
+    "kernel panic": {
+        "fix": "safe_mode_boot",
+        "desc": "บูตแบบ safe mode"
+    }
+}
