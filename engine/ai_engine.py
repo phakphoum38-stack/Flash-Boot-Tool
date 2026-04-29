@@ -3,7 +3,7 @@ from engine.ai_recommender import recommend
 from engine.auto_fix_engine import auto_fix
 from engine.qemu_boot_emulator import emulate_boot
 from engine.ai_trainer import train
-
+from cloud.api_client import get_fix, upload_fix
 
 def detect_best_mode(iso_name):
     iso_name = iso_name.lower()
@@ -69,4 +69,37 @@ def smart_auto_fix(iso, usb):
         "ai_source": result["ai_source"],
         "fix": result,
         "recheck": recheck
+    }
+
+def smart_auto_fix(iso, usb):
+
+    qemu_result = emulate_boot(iso)
+    signature = build_signature(qemu_result)
+
+    # 🔥 ลอง cloud ก่อน
+    cloud_strategies = get_fix(signature)
+
+    if cloud_strategies:
+        result = auto_fix(
+            {"error": "", "log": ""},
+            iso,
+            usb
+        )
+        source = "cloud"
+
+    else:
+        result = auto_fix(qemu_result, iso, usb)
+        source = "local"
+
+    # re-test
+    recheck = emulate_boot(iso)
+    success = recheck.get("boot_success", False)
+
+    # 🔥 upload ให้ cloud
+    upload_fix(signature, result.get("strategies", []), success)
+
+    return {
+        "source": source,
+        "signature": signature,
+        "success": success
     }
