@@ -4,6 +4,10 @@ from engine.simulation_report import format_report
 from engine.auto_fix_engine import auto_fix
 from engine.ai_engine import smart_auto_fix
 from engine.safety import kill_switch
+from fastapi import APIRouter
+from fastapi.responses import StreamingResponse
+import json
+from engine.dd_flash import flash_dd_with_progress
 
 router = APIRouter()
 
@@ -36,3 +40,12 @@ def ai_fix(data: dict):
 @router.post("/abort")
 def abort():
     return kill_switch()
+
+@router.get("/flash-progress")
+def flash_progress(iso: str, device: str):
+
+    def event_stream():
+        for update in flash_dd_with_progress(iso, device):
+            yield f"data: {json.dumps(update)}\n\n"
+
+    return StreamingResponse(event_stream(), media_type="text/event-stream")
