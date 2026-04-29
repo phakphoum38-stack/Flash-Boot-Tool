@@ -1,6 +1,23 @@
 use std::process::Command;
 
 #[tauri::command]
+pub fn flash_dd(iso: String, device: String) -> String {
+    let output = Command::new("dd")
+        .args([
+            &format!("if={}", iso),
+            &format!("of={}", device),
+            "bs=4M",
+            "status=progress"
+        ])
+        .output();
+
+    match output {
+        Ok(_) => "Flash completed".to_string(),
+        Err(e) => format!("Error: {}", e),
+    }
+}
+
+#[tauri::command]
 pub fn ventoy_install(device: String) -> String {
     let output = Command::new("sh")
         .arg("-c")
