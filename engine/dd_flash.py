@@ -7,22 +7,11 @@ from engine.safety import register_process
 from engine.verify_flash import verify_flash
 
 
-def flash_dd_with_progress(iso, device):
+import subprocess
 
-    cmd = [
-        "dd",
-        f"if={iso}",
-        f"of={device}",
-        "bs=4M",
-        "status=progress"
-    ]
-
-    proc = subprocess.Popen(
-        cmd,
-        stderr=subprocess.PIPE,
-        text=True
-    )
-
+def flash_iso(iso, device):
+    cmd = ["sudo", "dd", f"if={iso}", f"of={device}", "bs=4M", "status=progress"]
+    subprocess.run(cmd)
     register_process(proc)
 
     start_time = time.time()
