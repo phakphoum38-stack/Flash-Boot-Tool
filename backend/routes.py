@@ -9,6 +9,7 @@ from fastapi.responses import StreamingResponse
 import json
 from engine.dd_flash import flash_dd_with_progress
 from engine.verify_flash import verify_flash
+from engine.verify_flash import smart_verify
 
 router = APIRouter()
 
@@ -55,3 +56,6 @@ def flash_progress(iso: str, device: str):
 def verify(data: dict):
     return verify_flash(data["iso"], data["device"])
     
+@router.post("/verify")
+def verify(data: dict):
+    return smart_verify(data["iso"], data["device"])
