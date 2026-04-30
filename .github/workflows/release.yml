@@ -1,0 +1,77 @@
+name: Auto Release Flash Boot Tool
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build-release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # =========================
+      # 🐍 Python backend build
+      # =========================
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Build backend exe
+        run: |
+          pyinstaller main.py --onefile --name FlashBootBackend
+
+      # =========================
+      # 📦 Electron build
+      # =========================
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install frontend deps
+        run: |
+          cd electron-app
+          npm install
+
+      - name: Build installer
+        run: |
+          cd electron-app
+          npm run dist
+
+      # =========================
+      # 🚀 Upload artifacts
+      # =========================
+      - name: Upload backend exe
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-exe
+          path: dist/FlashBootBackend.exe
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: installer
+          path: electron-app/dist/**
+
+      # =========================
+      # 💿 CREATE GITHUB RELEASE
+      # =========================
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/FlashBootBackend.exe
+            electron-app/dist/**
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
