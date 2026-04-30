@@ -41,12 +41,12 @@ jobs:
 
       - name: Install frontend deps
         run: |
-          cd frontend
+          cd src-ui
           npm install
 
-      - name: Build Electron app
+      - name: Build frontend
         run: |
-          cd frontend
+          cd src-ui
           npm run build
 
       # =========================
