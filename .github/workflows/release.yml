@@ -32,7 +32,7 @@ jobs:
           pyinstaller backend/main.py --onefile --name FlashBootBackend
 
       # =========================
-      # 🌐 FRONTEND BUILD (Electron)
+      # 🌐 FRONTEND BUILD (src-ui)
       # =========================
       - name: Setup Node
         uses: actions/setup-node@v4
