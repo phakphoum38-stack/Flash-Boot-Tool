@@ -1,4 +1,4 @@
-name: Auto Release Flash Boot Tool
+name: Auto Build & Release Flash Boot Tool
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - "v*"
 
 jobs:
-  build-release:
+  build:
     runs-on: windows-latest
 
     steps:
@@ -14,14 +14,14 @@ jobs:
         uses: actions/checkout@v4
 
       # =========================
-      # 🐍 Python backend build
+      # 🐍 BACKEND BUILD
       # =========================
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      - name: Install dependencies
+      - name: Install backend deps
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
@@ -29,10 +29,10 @@ jobs:
 
       - name: Build backend exe
         run: |
-          pyinstaller main.py --onefile --name FlashBootBackend
+          pyinstaller backend/main.py --onefile --name FlashBootBackend
 
       # =========================
-      # 📦 Electron build
+      # 🌐 FRONTEND BUILD (Electron)
       # =========================
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -41,16 +41,16 @@ jobs:
 
       - name: Install frontend deps
         run: |
-          cd electron-app
+          cd frontend
           npm install
 
-      - name: Build installer
+      - name: Build Electron app
         run: |
-          cd electron-app
-          npm run dist
+          cd frontend
+          npm run build
 
       # =========================
-      # 🚀 Upload artifacts
+      # 📦 COLLECT FILES
       # =========================
       - name: Upload backend exe
         uses: actions/upload-artifact@v4
@@ -58,20 +58,20 @@ jobs:
           name: backend-exe
           path: dist/FlashBootBackend.exe
 
-      - name: Upload installer
+      - name: Upload frontend build
         uses: actions/upload-artifact@v4
         with:
-          name: installer
-          path: electron-app/dist/**
+          name: frontend
+          path: frontend/dist/**
 
       # =========================
-      # 💿 CREATE GITHUB RELEASE
+      # 💿 CREATE RELEASE
       # =========================
-      - name: Create Release
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
             dist/FlashBootBackend.exe
-            electron-app/dist/**
+            frontend/dist/**
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
